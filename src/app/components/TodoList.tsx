@@ -63,7 +63,7 @@ const TodoList: React.FC = () => {
   return (
     <div className="bg-gray-800 min-h-screen flex items-center justify-center overflow-auto hover:overflow-scroll">
       <div className="max-w-lg bg-black p-8 shadow-lg rounded-lg">
-        <h1 className="text-2xl font-bold mb-4">To-Do List</h1>
+        <h1 className="text-2xl font-bold mb-4 text-center">To-Do List</h1>
 
         <form onSubmit={editTask ? handleUpdateTask : handleAddTask}>
           <input
