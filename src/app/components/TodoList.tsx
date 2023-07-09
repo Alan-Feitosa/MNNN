@@ -1,7 +1,6 @@
-'use client'
+'use client';
 
 import React, { useState } from 'react';
-import Options from './Options';
 
 interface Task {
   id: number;
@@ -12,6 +11,7 @@ interface Task {
 const TodoList: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState('');
+  const [editTask, setEditTask] = useState<Task | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewTask(e.target.value);
@@ -20,7 +20,12 @@ const TodoList: React.FC = () => {
   const handleAddTask = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (newTask.trim() !== '') {
-      setTasks([...tasks, { id: Date.now(), name: newTask, completed: false }]);
+      const newTaskItem: Task = {
+        id: Date.now(),
+        name: newTask,
+        completed: false,
+      };
+      setTasks([...tasks, newTaskItem]);
       setNewTask('');
     }
   };
@@ -33,51 +38,117 @@ const TodoList: React.FC = () => {
     );
   };
 
-  const handleRemoveTask = (id: number) => {
+  const handleEditTask = (task: Task) => {
+    setEditTask(task);
+    setNewTask(task.name);
+  };
+
+  const handleUpdateTask = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (editTask && newTask.trim() !== '') {
+      setTasks(
+        tasks.map((task) =>
+          task.id === editTask.id ? { ...task, name: newTask } : task
+        )
+      );
+      setNewTask('');
+      setEditTask(null);
+    }
+  };
+
+  const handleDeleteTask = (id: number) => {
     setTasks(tasks.filter((task) => task.id !== id));
   };
 
   return (
-  <main>
-      <div className=" min-h-screen flex items-center justify-center">
-      <div className="max-w-lg  p-8 shadow-lg rounded-lg">
-        <h1 className="text-2xl font-bold text-center mb-4">To Do List</h1>
-    
-      <form onSubmit={handleAddTask} className="flex mb-4">
-        <input type="text" value={newTask} onChange={handleInputChange} className="w-full bg-gray-700 rounded-l-lg p-2 focus:outline-none" placeholder="Digite uma nova tarefa" />
-        <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white rounded-r-lg px-4 py-2">Adicionar</button>
-      </form>
-      <div className='bg-gray-500 min-h-screen flex-1 p-5 m-5 items-center justify-center'>
-        <div className='bg-gray-500  min-h-screen flex-1 p-5 m-5 items-center justify-center'>
-          <ul className="space-y-4">
+    <div className="bg-gray-800 min-h-screen flex items-center justify-center overflow-auto hover:overflow-scroll">
+      <div className="max-w-lg bg-black p-8 shadow-lg rounded-lg">
+        <h1 className="text-2xl font-bold mb-4">To-Do List</h1>
+
+        <form onSubmit={editTask ? handleUpdateTask : handleAddTask}>
+          <input
+            type="text"
+            value={newTask}
+            onChange={handleInputChange}
+            placeholder="Digite uma nova tarefa"
+            className="bg-slate-600 rounded-l-lg p-2 focus:outline-none"
+          />
+          <button
+            type="submit"
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-r-lg px-4 py-2"
+          >
+            {editTask ? 'Atualizar' : 'Adicionar'}
+          </button>
+        </form>
+
+        <table className="w-full mt-4">
+          <thead>
+            <tr>
+              <th className="py-2 px-4 bg-gray-500 text-gray-800 font-semibold">
+                Tarefa
+              </th>
+              <th className="py-2 px-4 bg-gray-500 text-gray-800 font-semibold">
+                Ações
+              </th>
+            </tr>
+          </thead>
+          <tbody>
             {tasks.map((task) => (
-                <li key={task.id}>
-                <table className='w-full'>
-                <thead>
-                  <tr>
-                    <th>Tarefa</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="py-2 px-4 bg-transparent text-white font-semibold" >{task.name}</td>
-                    <input type="checkbox" className="mr-2 p-2" />
-                    <Options />
-                    <input type="button" value="ok"  
-                    className={task.completed ? 'completed' : ''}
-                    onClick={() => handleToggleTask(task.id)} />
-                  </tr>
-                </tbody>
-              </table>
-                <button onClick={() => handleRemoveTask(task.id)} className="ml-auto text-red-500 hover:text-red-600 p-2">Remover</button>
-              </li>
+              <tr
+                key={task.id}
+                className={task.completed ? 'bg-zinc-600' : 'bg-zinc-600'}
+              >
+                <td className="py-2 px-4 border-b">
+                  {editTask?.id === task.id ? (
+                    <form onSubmit={handleUpdateTask}>
+                      <input
+                        type="text"
+                        value={newTask}
+                        onChange={handleInputChange}
+                        className="w-full rounded-lg p-2 focus:outline-none text-black"
+                      />
+                    </form>
+                  ) : (
+                    task.name
+                  )}
+                </td>
+                <td className="py-2 px-4 border-b">
+                  {editTask?.id === task.id ? (
+                    <button
+                      onClick={() => setEditTask(null)}
+                      className="text-red-500 hover:text-red-600"
+                    >
+                      Cancelar
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => handleEditTask(task)}
+                        className="text-blue-500 hover:text-blue-600 mr-2"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => handleToggleTask(task.id)}
+                        className="text-green-500 hover:text-green-600 mr-2"
+                      >
+                        {task.completed ? 'Desmarcar' : 'Marcar'}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteTask(task.id)}
+                        className="text-red-500 hover:text-red-600"
+                      >
+                        Remover
+                      </button>
+                    </>
+                  )}
+                </td>
+              </tr>
             ))}
-          </ul>
-         </div>
-        </div>
+          </tbody>
+        </table>
       </div>
     </div>
-  </main>
   );
 };
 
